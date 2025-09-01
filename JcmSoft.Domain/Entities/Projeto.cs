@@ -14,9 +14,9 @@ namespace JcmSoft.Domain.Entities
         public StatusProjeto Status { get; set; }
 
         //public ICollection<Funcionario> Funcionarios { get; set; } = new List<Funcionario>();
-        public ICollection<FuncionarioProjeto> FuncionarioProjetos { get; set; } = new List<FuncionarioProjeto>();
+        public virtual ICollection<FuncionarioProjeto> FuncionarioProjetos { get; set; } = new List<FuncionarioProjeto>();
         public Guid ClienteId { get; set; }
-        public Cliente? Cliente { get; set; }
+        public virtual Cliente? Cliente { get; set; }
 
     }
 }

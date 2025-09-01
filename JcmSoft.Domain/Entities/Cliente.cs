@@ -7,6 +7,8 @@
         public required string Email { get; set; }
         public required string Telefone { get; set; }
 
-        public ICollection<Projeto> Projetos { get; set; } = new List<Projeto>();
+        public bool Ativo { get; set; }
+
+        public virtual ICollection<Projeto> Projetos { get; set; } = new List<Projeto>();
     }
 }

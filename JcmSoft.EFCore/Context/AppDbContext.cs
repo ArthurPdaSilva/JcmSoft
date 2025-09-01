@@ -15,12 +15,17 @@ namespace JcmSoft.EFCore.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(AppConfig.GetConnectionString());
-            base.OnConfiguring(optionsBuilder);
+            optionsBuilder
+                .UseSqlServer(AppConfig.GetConnectionString())
+                //Para não precisar setar AsSplitQuery toda vez que for fazer uma consulta com várias entidades relacionadas (Include)
+                .UseSqlServer(o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)) //Evita o problema do cartesian explosion quando se faz consultas com várias entidades relacionadas (Include)
+                .UseLazyLoadingProxies()
+                .LogTo(Console.WriteLine, new[] { DbLoggerCategory.Database.Command.Name }, Microsoft.Extensions.Logging.LogLevel.Information);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             modelBuilder.HasDefaultSchema("jcmsoft");
 
             var departamentoIds = new List<Guid>()
@@ -131,6 +136,14 @@ namespace JcmSoft.EFCore.Context
             modelBuilder.Entity<Cliente>(entity =>
             {
                 entity.HasKey(e => e.Id);
+
+                //entity.HasIndex(e => e.Nome);
+                //entity.HasIndex(e => e.Email).IsUnique();
+
+                //Global Query Filters - Filtros aplicados automaticamente a todas as consultas de uma entidade específica, permitindo filtrar dados com base em condições predefinidas, como status ativo/inativo, data de exclusão lógica, etc.
+                //Só da para add um hasQueryFilter por entidade
+                //entity.HasQueryFilter(f => f.Ativo && f.Projetos.Any());
+                entity.HasQueryFilter(f => f.Ativo);
                 entity.Property(e => e.Nome).HasMaxLength(100);
                 entity.Property(e => e.Email).HasMaxLength(100);
                 entity.Property(e => e.Telefone).HasMaxLength(15);
@@ -140,54 +153,112 @@ namespace JcmSoft.EFCore.Context
                         Id = clienteId,
                         Nome = "Empresa XYZ",
                         Email = "",
-                        Telefone = "11999999999"
-                    });
-            });
-
-            modelBuilder.Entity<Projeto>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Nome).HasMaxLength(100);
-                entity.Property(e => e.Descricao).HasMaxLength(100);
-                entity.Property(e => e.Orcamento).HasColumnType("decimal(20,2)");
-                entity.HasData(
-                    new Projeto
-                    {
-                        Id = projetosId[0],
-                        Nome = "Projeto Alpha",
-                        Descricao = "Desenvolvimento do Projeto Alpha",
-                        DataInicio = new DateTime(2023, 1, 10),
-                        DataFim = new DateTime(2023, 6, 30),
-                        ClienteId = clienteId
+                        Telefone = "11999999999",
+                        Ativo = true
                     },
-                    new Projeto
+                    new Cliente
                     {
-                        Id = projetosId[1],
-                        Nome = "Projeto Beta",
-                        Descricao = "Implementação do Sistema Beta",
-                        DataInicio = new DateTime(2023, 2, 15),
-                        ClienteId = clienteId
+                        Id = Guid.NewGuid(),
+                        Nome = "Tech Solutions",
+                        Email = "contato@techsolutions.com",
+                        Telefone = "11988888888",
+                        Ativo = true
+                    },
+                    new Cliente
+                    {
+                        Id = Guid.NewGuid(),
+                        Nome = "Construtora Alpha",
+                        Email = "alpha@construtora.com",
+                        Telefone = "11977777777",
+                        Ativo = true
+                    },
+                    new Cliente
+                    {
+                        Id = Guid.NewGuid(),
+                        Nome = "Supermercado Bom Preço",
+                        Email = "suporte@bompreco.com",
+                        Telefone = "11966666666",
+                        Ativo = true
+                    },
+                    new Cliente
+                    {
+                        Id = Guid.NewGuid(),
+                        Nome = "AgroVale",
+                        Email = "vendas@agrovale.com",
+                        Telefone = "11955555555",
+                        Ativo = true
+                    },
+                    new Cliente
+                    {
+                        Id = Guid.NewGuid(),
+                        Nome = "Clínica Vida",
+                        Email = "info@clinicavida.com",
+                        Telefone = "11944444444",
+                        Ativo = true
+                    },
+                    new Cliente
+                    {
+                        Id = Guid.NewGuid(),
+                        Nome = "Transportadora Rápida",
+                        Email = "contato@transportadorarapida.com",
+                        Telefone = "11933333333",
+                        Ativo = false
+                    },
+                    new Cliente
+                    {
+                        Id = Guid.NewGuid(),
+                        Nome = "Editora Saber",
+                        Email = "editor@saber.com",
+                        Telefone = "11922222222",
+                        Ativo = false
                     }
                 );
-            });
 
-            modelBuilder.Entity<FuncionarioProjeto>(entity =>
-            {
-                entity.HasKey(e => new { e.FuncionarioId, e.ProjetoId });
-                entity.HasData(
-                    new FuncionarioProjeto
-                    {
-                        FuncionarioId = funcionariosId[0],
-                        ProjetoId = projetosId[1],
-                        HorasTrabalhadas = 150
-                    },
-                    new FuncionarioProjeto
-                    {
-                        FuncionarioId = funcionariosId[1],
-                        ProjetoId = projetosId[0],
-                        HorasTrabalhadas = 200
-                    }
-                );
+                modelBuilder.Entity<Projeto>(entity =>
+                {
+                    entity.HasKey(e => e.Id);
+                    entity.Property(e => e.Nome).HasMaxLength(100);
+                    entity.Property(e => e.Descricao).HasMaxLength(100);
+                    entity.Property(e => e.Orcamento).HasColumnType("decimal(20,2)");
+                    entity.HasData(
+                        new Projeto
+                        {
+                            Id = projetosId[0],
+                            Nome = "Projeto Alpha",
+                            Descricao = "Desenvolvimento do Projeto Alpha",
+                            DataInicio = new DateTime(2023, 1, 10),
+                            DataFim = new DateTime(2023, 6, 30),
+                            ClienteId = clienteId
+                        },
+                        new Projeto
+                        {
+                            Id = projetosId[1],
+                            Nome = "Projeto Beta",
+                            Descricao = "Implementação do Sistema Beta",
+                            DataInicio = new DateTime(2023, 2, 15),
+                            ClienteId = clienteId
+                        }
+                    );
+                });
+
+                modelBuilder.Entity<FuncionarioProjeto>(entity =>
+                {
+                    entity.HasKey(e => new { e.FuncionarioId, e.ProjetoId });
+                    entity.HasData(
+                        new FuncionarioProjeto
+                        {
+                            FuncionarioId = funcionariosId[0],
+                            ProjetoId = projetosId[1],
+                            HorasTrabalhadas = 150
+                        },
+                        new FuncionarioProjeto
+                        {
+                            FuncionarioId = funcionariosId[1],
+                            ProjetoId = projetosId[0],
+                            HorasTrabalhadas = 200
+                        }
+                    );
+                });
             });
         }
     }

@@ -19,6 +19,6 @@ namespace JcmSoft.Domain.Entities
 
         public DateTime DataNascimento { get; set; }
         public Guid FuncionarioId { get; set; }
-        public Funcionario? Funcionario { get; set; }
+        public virtual Funcionario? Funcionario { get; set; }
     }
 }

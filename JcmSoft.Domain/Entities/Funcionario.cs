@@ -10,9 +10,9 @@
         public required DateOnly DataContratacao { get; set; }
 
         public Guid DepartamentoId { get; set; }
-        public Departamento? Departamento { get; set; }
-        public FuncionarioDetalhe? FuncionarioDetalhe { get; set; }
+        public virtual Departamento? Departamento { get; set; }
+        public virtual FuncionarioDetalhe? FuncionarioDetalhe { get; set; }
         //public ICollection<Projeto> Projetos { get; set; } = new List<Projeto>();
-        public ICollection<FuncionarioProjeto> FuncionarioProjetos { get; set; } = new List<FuncionarioProjeto>();
+        public virtual ICollection<FuncionarioProjeto> FuncionarioProjetos { get; set; } = new List<FuncionarioProjeto>();
     }
 }
