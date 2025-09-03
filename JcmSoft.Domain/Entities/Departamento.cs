@@ -2,10 +2,10 @@
 {
     public class Departamento
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public required string Nome { get; set; }
         public required string Descricao { get; set; }
-        public DateTime DataCriacao { get; set; } = DateTime.Now;
-        public virtual ICollection<Funcionario> Funcionarios { get; set; } = new List<Funcionario>();
+        public required DateTime DataCriacao { get; set; }
+        //public virtual ICollection<Funcionario> Funcionarios { get; set; } = new List<Funcionario>();
     }
 }
