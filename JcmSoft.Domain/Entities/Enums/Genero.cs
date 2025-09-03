@@ -2,8 +2,8 @@
 {
     public enum Genero
     {
-        MASCULINO,
-        FEMININO,
-        OUTRO
+        Masculino,
+        Feminino,
+        Outro
     }
 }

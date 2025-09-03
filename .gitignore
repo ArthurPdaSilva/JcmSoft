@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+JcmSoft.EFCore/Migrations/20250903135142_init.cs
+/JcmSoft.EFCore/Migrations

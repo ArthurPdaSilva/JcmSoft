@@ -2,14 +2,14 @@
 {
     public enum Escolaridade
     {
-        FUNDAMENTAL_INCOMPLETO,
-        FUNDAMENTAL_COMPLETO,
-        MEDIO_INCOMPLETO,
-        MEDIO_COMPLETO,
-        SUPERIOR_INCOMPLETO,
-        SUPERIOR_COMPLETO,
-        POS_GRADUACAO,
-        MESTRADO,
-        DOUTORADO
+        FundamentalIncompleto,
+        FundamentalCompleto,
+        Medio,
+        Tecnico,
+        SuperiorIncompleto,
+        SuperiorCompleto,
+        PosGraduacao,
+        Mestrado,
+        Doutorado
     }
 }
