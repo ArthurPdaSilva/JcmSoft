@@ -499,4 +499,13 @@ using System.Runtime.Intrinsics.X86;
 //    .ExecuteDelete(); //Deleta todos os funcionários com salário menor que 4000
 //Oo ExecuteUpdate não atualiza as propriedades de navegação, apenas as propriedades escalares diretas da entidade alvo. Se precisar atualizar propriedades de navegação, deve carregar as entidades e atualizá-las manualmente.
 using var _context = new AppDbContext();
-_context.Database.EnsureDeleted();
+//_context.Database.EnsureDeleted();
+
+//Scaffolding - Gerar o modelo a partir do banco de dados existente
+//Scaffold-DbContext "Data Source=name;Initial Catalog=database;Integrated Security=True;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir Data -Context AppDbContext
+
+//Alternativas para aplicar migração em Produção
+// --idempotent --output migrations-prod.sql
+//1- Validação do script (pré-produção): Gere o script SQL da migração usando o comando dotnet ef migrations script e revise o script para garantir que ele esteja correto e não cause perda de dados. Depois, aplique o script manualmente no banco de dados de produção.
+//2 - Faça uma pull request e backups
+//3 - Pós Execução: valide a integridade dos dados (smoke tests)
