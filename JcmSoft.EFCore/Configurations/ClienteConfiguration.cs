@@ -22,6 +22,17 @@ namespace JcmSoft.EFCore.Configurations
                new Cliente { Id = 4, Nome = "Tech Innovators Ltda", Email = "innovators@email.com", Telefone = "55-11 9950-9622" },
                new Cliente { Id = 5, Nome = "Health Solutions Inc.", Email = "healtsolutions@email.com", Telefone = "55-21 9852-9655" }
             );
+
+            //entity.HasMany(c => c.Projetos)
+            //      .WithOne(p => p.Cliente)
+            //      .HasForeignKey(p => p.ClienteId)
+            //      .OnDelete(DeleteBehavior.Cascade); // Se eu apagar um cliente, apaga todos os projetos associados
+
+            //Quando a FK for nula, o comportamento padrão é SetNull, ou seja, ao apagar o cliente, a FK ClienteId nos projetos associados será definida como nula.
+            //Quando a FK não for nula, o comportamento padrão é Cascade, ou seja, ao apagar o cliente, todos os projetos associados serão apagados.
+            //Restrict: Impede a exclusão do cliente se houver projetos associados. //Evita exclusão acidental
+            //NoAction: Sem ação automática; a integridade referencial deve ser gerenciada manualmente.
+            //ClientSetNull: Define a FK como nula ao apagar o cliente, se a FK permitir nulos. //Só aplica na memória, não no banco de dados.
         }
     }
 }

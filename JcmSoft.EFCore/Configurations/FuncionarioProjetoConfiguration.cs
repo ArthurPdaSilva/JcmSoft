@@ -53,6 +53,19 @@ namespace JcmSoft.EFCore.Configurations
                 new FuncionarioProjeto { FuncionarioId = 27, ProjetoId = 7, HorasTrabalhadas = 44 },
                 new FuncionarioProjeto { FuncionarioId = 40, ProjetoId = 7, HorasTrabalhadas = 42 }
             );
+
+            //Relacionamento explicito N:N
+            //entity.HasOne(fp => fp.Funcionario)
+            //      .WithMany(f => f.FuncionarioProjetos)
+            //      .HasForeignKey(fp => fp.FuncionarioId);
+
+            //entity.HasOne(fp => fp.Projeto)
+            //      .WithMany(p => p.FuncionarioProjetos)
+            //      .HasForeignKey(fp => fp.ProjetoId);
+
+
+            //entity.ToTable("FuncionarioProjeto");
         }
+
     }
 }

@@ -70,6 +70,25 @@ namespace JcmSoft.EFCore.Configurations
                  new Funcionario { Id = 44, Nome = "Alberto Lima", Cargo = "Representante de Vendas", Salario = 4800.00m, DataContratacao = new DateOnly(2022, 7, 18), DepartamentoId = 6 },
                  new Funcionario { Id = 45, Nome = "Rogério Oliveira", Cargo = "Assistente de Vendas", Salario = 3700.00m, DataContratacao = new DateOnly(2023, 6, 10), DepartamentoId = 6 }
             );
+
+
+            //Configuração explícita de relacionamento 1:N
+            //entity.HasOne(d => d.Departamento)
+            //      .WithMany(p => p.Funcionarios)
+            //      .HasForeignKey(d => d.DepartamentoId)
+            //      .IsRequired() // Garante que a FK não seja nula
+            //      .OnDelete(DeleteBehavior.Restrict); // Não permite excluir um Departamento se houver Funcionários associados
+
+
+            //Relacionamento N:N entre Funcionario e Projeto via FuncionarioProjeto e implicito
+            //entity.HasMany(f => f.Projetos)
+            //      .WithMany(p => p.Funcionarios)
+            //      .UsingEntity<Dictionary<string, object>>(
+            //          "FuncionarioProjeto", // Nome da tabela de junção
+            //          j => j.HasOne<Projeto>().WithMany().HasForeignKey("ProjetoId").HasConstraintName("FK_FuncionarioProjeto_Projeto").OnDelete(DeleteBehavior.Cascade),
+            //          j => j.HasOne<Funcionario>().WithMany().HasForeignKey("FuncionarioId").HasConstraintName("FK_FuncionarioProjeto_Funcionario").OnDelete(DeleteBehavior.ClientCascade),
+            //          j => j.ToTable("FuncionarioProjeto"));
+
         }
     }
 }

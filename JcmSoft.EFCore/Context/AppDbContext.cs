@@ -13,6 +13,7 @@ namespace JcmSoft.EFCore.Context
         public DbSet<Projeto> Projetos { get; set; }
         public DbSet<FuncionarioProjeto> FuncionarioProjetos { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<FuncionarioDepartamentoView> FuncionarioDepartamentoViews { get; set; } //Para mapear a view criada no banco de dados
         //public DbSet<Produto> Produtos { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

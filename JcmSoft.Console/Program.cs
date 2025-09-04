@@ -1,6 +1,8 @@
 ﻿using JcmSoft.Domain.Entities;
 using JcmSoft.EFCore.Context;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Diagnostics;
 using System.Runtime.Intrinsics.X86;
 
@@ -498,7 +500,6 @@ using System.Runtime.Intrinsics.X86;
 //    .Where(f => f.Salario < 4000)
 //    .ExecuteDelete(); //Deleta todos os funcionários com salário menor que 4000
 //Oo ExecuteUpdate não atualiza as propriedades de navegação, apenas as propriedades escalares diretas da entidade alvo. Se precisar atualizar propriedades de navegação, deve carregar as entidades e atualizá-las manualmente.
-using var _context = new AppDbContext();
 //_context.Database.EnsureDeleted();
 
 //Scaffolding - Gerar o modelo a partir do banco de dados existente
@@ -509,3 +510,185 @@ using var _context = new AppDbContext();
 //1- Validação do script (pré-produção): Gere o script SQL da migração usando o comando dotnet ef migrations script e revise o script para garantir que ele esteja correto e não cause perda de dados. Depois, aplique o script manualmente no banco de dados de produção.
 //2 - Faça uma pull request e backups
 //3 - Pós Execução: valide a integridade dos dados (smoke tests)
+
+
+//Método FromSqlRaw: Esse método permite executar consultas SQL brutas diretamente no banco de dados. Ele é útil quando você precisa executar consultas complexas que não podem ser facilmente expressas usando LINQ ou quando você deseja aproveitar recursos específicos do banco de dados que não são suportados pelo EF Core. No entanto, ao usar FromSqlRaw, você deve ter cuidado para evitar injeções de SQL, pois ele não parametriza automaticamente as consultas. Certifique-se de usar parâmetros para qualquer entrada do usuário para proteger contra ataques de injeção de SQL.
+
+//var departamentoId = 0;
+//var funcionarios = _context.Funcionarios
+//    .FromSqlRaw("SELECT * FROM Funcionarios WHERE DepartamentoId = {0}", departamentoId)
+//    .Include(f => f.Departamento)
+//    .ToList();
+//funcionarios.ForEach(f => Console.WriteLine($"Nome: {f.Nome} | Departamento: {f.Departamento?.Nome}"));
+
+//Método FromSql: Esse método é semelhante ao FromSqlRaw, mas ele utiliza interpolação de strings e automaticamente parametriza as consultas, protegendo contra injeções de SQL. Ele é a abordagem recomendada para construir consultas dinâmicas no EF Core quando há necessidade de usar SQL diretamente.
+//var funcionarios2 = _context.Funcionarios
+//    //A mudança é apenas na interpolação da string
+//    .FromSql($"SELECT * FROM Funcionarios WHERE DepartamentoId = {departamentoId}") //Para versões mais antigas do EF Core use FromSqlInterpolated
+//    .Include(f => f.Departamento)
+//    .ToList();
+//funcionarios2.ForEach(f => Console.WriteLine($"Nome: {f.Nome} | Departamento: {f.Departamento?.Nome}"));
+
+//SqlQuery: Esse método é usado para executar consultas SQL brutas que retornam tipos que não são entidades rastreadas pelo DbContext. Ele é útil quando você deseja executar consultas que retornam tipos anônimos ou tipos definidos pelo usuário que não estão mapeados como entidades no modelo do EF Core. Ao usar SqlQuery, você deve garantir que o tipo retornado corresponda à estrutura dos dados retornados pela consulta SQL. Além disso, assim como com FromSqlRaw, você deve tomar cuidado para evitar injeções de SQL, utilizando parâmetros para qualquer entrada do usuário. Ele não suporta carregamento de propriedades de navegação, pois não retorna entidades rastreadas pelo contexto.
+
+
+
+//Diferença entre Join e Inner Join: Ambos são usados para combinar registros de duas ou mais tabelas com base em uma condição relacionada. A diferença principal é que o Join (ou Left Join) retorna todos os registros da tabela à esquerda, mesmo que não haja correspondência na tabela à direita, preenchendo com NULL onde não houver correspondência. Já o Inner Join retorna apenas os registros que têm correspondência em ambas as tabelas, excluindo aqueles que não possuem correspondência.
+
+
+//public class FuncionarioSalarioDTO
+//{
+//    public string? Nome { get; set; }
+//    public decimal Salario { get; set; }
+//    public string Cargo { get; set; }
+//    public string Departamento { get; set; }
+//}
+
+//var funcionarios3 = _context.Database.SqlQuery<FuncionarioSalarioDTO>($@"SELECT f.Nome, f.Salario, f.Cargo, d.Nome AS Departamento FROM Funcionarios f INNER JOIN Departamentos d ON f.DepartamentoId = d.Id ORDER BY f.Salario DESC").ToList();
+//funcionarios3.ForEach(f => Console.WriteLine($"Nome: {f.Nome} | Salário: {f.Salario} | Cargo: {f.Cargo} | Departamento: {f.Departamento}"));
+
+
+//Se o tipo retornado for um primitivo, a consulta precisará conter o VALUE
+//var totalSalario = await _context.Database.SqlQuery<decimal>($@"SELECT SUM(Salario) AS VALUE FROM Funcionarios where DepartamentoId = {departamentoId}").FirstOrDefaultAsync(); //Esse método é async pq pode ser uma consulta longa
+//Console.WriteLine(totalSalario);
+//Muito bom em procedimentos armazenados ou views;
+
+//Stored Procedures (Procedimentos Armazenados) são conjuntos de comandos SQL pré-compilados e armazenados no banco de dados. Eles podem ser executados para realizar operações específicas, como consultas, inserções, atualizações ou exclusões de dados. Os Stored Procedures são úteis para encapsular lógica de negócios complexa, melhorar a performance ao reduzir o tráfego entre a aplicação e o banco de dados, e aumentar a segurança ao controlar o acesso aos dados.
+//No SQL Server, eles estão dentro da pasta Programmability > Stored Procedures
+//Comandos exec <nome_procedimento> @parametro1 = valor1, @parametro2 = valor2...;
+//exec ObterFuncionariosPorDepartamento @DepartamentoId = 1;
+//No dbeaver fica na pasta Procedures
+//exec JcmSoftDatabase.sys.sp_help 'Funcionarios'
+//exec JcmSoftDatabase.sys.sp_tables
+//Use prefixos como usp_, use o bloco begin end e evite lógica complexa dentro do procedimento, prefira chamar outras procedures ou funções
+//CREATE PROCEDURE usp_ListarFuncionariosPorDepartamento
+//	@DepartamentoId int
+//AS
+//BEGIN
+//	SELECT Nome, Cargo, Salario FROM Funcionarios WHERE DepartamentoId = @DepartamentoId
+//END
+//USE[JcmSoftDatabase]
+//Exec usp_ListarFuncionariosPorDepartamento 2
+
+//while (departamentoId != -1)
+//{
+//    Console.WriteLine("Digite o Id do departamento para listar os funcionários (ou -1 para sair): ");
+//    departamentoId = int.Parse(Console.ReadLine()!);
+//    if (departamentoId == -1) break;
+//    //É interessante usar await, pois pode ser uma consulta longa
+//    var funcionarios4 = await _context.Database.SqlQuery<FuncionarioSalarioDTO>($@"EXEC usp_ListarFuncionariosPorDepartamento @DepartamentoId = {departamentoId}").ToListAsync();
+//    funcionarios4.ForEach(f => Console.WriteLine($"Nome: {f.Nome} | Cargo: {f.Cargo} | Salário: {f.Salario}"));
+//    Console.WriteLine();
+//}
+//public record FuncionarioSalarioDTO(string Nome, string Cargo, decimal Salario);
+
+
+//Alterando uma Stored Procedure
+//ALTER PROCEDURE usp_ListarFuncionariosPorDepartamento
+//	@DepartamentoId int
+//AS
+//BEGIN
+//	SELECT FuncionarioId, Nome, Cargo, Salario, DataContratacao, DepartamentoId FROM Funcionarios WHERE DepartamentoId = @DepartamentoId
+//END
+
+//--CREATE PROCEDURE usp_FuncionariosContratadosPorPeriodo 
+//--	@DataInicio DATE,
+//--	@DataFim DATE
+//--AS
+//--BEGIN
+//--	SELECT 
+//--		f.Id, f.Nome, f.Cargo,
+//--		f.Salario, f.DataContratacao, f.DepartamentoId
+//--	FROM Funcionarios f
+//--	WHERE f.DataContratacao 
+//--	BETWEEN @DataInicio AND @DataFim
+//--	ORDER BY f.DataContratacao 
+//--END
+//--EXEC sp_rename 'usp_FUncionariosContratadosPorPeriodo', 'usp_FuncionariosContratadosPorPeriodo'
+//--exec usp_FuncionariosContratadosPorPeriodo
+//--@DataInicio = '2023-01-01', @DataFim = '2023-12-31';
+
+//--drop procedure usp_FuncionariosContratadosPorPeriodo;
+
+
+//Usando SqlParameter para evitar injeção de SQL
+//var funcionarios5 = await _context.Funcionarios.FromSqlRaw(
+//    "EXEC usp_ListarFuncionariosPorDepartamento @DepartamentoId", new SqlParameter("@DepartamentoId", 2)
+//    ).ToListAsync();
+
+
+//Renomeando uma Stored Procedure
+//EXEC sp_rename 'usp_ListarFuncionariosPorDepartamento', 'usp_ObterFuncionariosPorDepartamento' //Sem dbo
+
+
+//Criando via migrations:
+//Crie e teste no DBeaver. Depois apague com o drop procedure e por fim copie e cole na migration
+//Ao criar a procedure via migration não precisa mais usar o exec, apenas o nome da procedure, pois o EF Core já entende que é uma procedure
+//var parametros = new[]
+//{
+//new SqlParameter("@DataInicio", new DateTime(2023, 1, 1)),
+//new SqlParameter("@DataFim", new DateTime(2023, 12, 31))
+//};
+//var funcionarios6 = await _context.Funcionarios.FromSqlRaw("usp_FuncionariosContratadosPorPeriodo @DataInicio, @DataFim", parametros).ToListAsync();
+//funcionarios6.ForEach(f => Console.WriteLine($"Nome: {f.Nome} | Cargo: {f.Cargo} | Data Contratação: {f.DataContratacao}"));
+
+using var _context = new AppDbContext();
+
+
+//Uma view é uma tabela virtual baseada no resultado de uma consulta SQL. Ela pode combinar dados de uma ou mais tabelas e apresentar esses dados como se fossem uma única tabela. As views são úteis para simplificar consultas complexas, encapsular lógica de negócios e melhorar a segurança ao restringir o acesso direto às tabelas subjacentes.
+//É como se fosse um filtro ou uma janela para os dados, ela não ocupa espaço extra.
+
+//Servem para simplificar consultas complexas, encapsular lógica de negócios, melhorar a segurança e fornecer uma camada de abstração entre a aplicação e o banco de dados.
+//Em alguns casos podem melhorar a performance, especialmente quando usadas com índices, mas não substituem otimizações de consultas e índices nas tabelas base.
+
+//View x Stored Procedure:
+//View: Representa uma tabela virtual baseada em uma consulta SQL. Ela pode ser usada em consultas SELECT como se fosse uma tabela real, mas não pode aceitar parâmetros. As views são úteis para simplificar consultas complexas e fornecer uma camada de abstração.
+//Stored Procedure: É um conjunto de comandos SQL pré-compilados que podem aceitar parâmetros e realizar operações complexas, incluindo consultas, inserções, atualizações e exclusões. As stored procedures são úteis para encapsular lógica de negócios e melhorar a performance ao reduzir o tráfego entre a aplicação e o banco de dados.
+//View não tem lógica condicional ou loopings, mas stored procedures podem ter.
+
+//Create view view_FunciSlario as select Nome, Salario from Funcionarios 
+//Para fazer uma view atualizavel ela deve ser baseada em uma única tabela, incluir todas as colunas NOT NULL, não usar agregações, joins, subconsultas, distinct, group by, having, union, funções de janela ou colunas calculadas.
+//Para deletar a view: drop view view_FunciSlario
+
+//create view view_funcinariosDepartamentos as
+//select
+//	f.Id as FuncionarioId, d.Id as DepartamentoId ,
+//    f.Nome as NomeFuncionario,
+//    d.Nome as NomeDepartamento,
+//    d.Descricao as DescricaoDepartamento,
+//    f.Cargo, f.Salario, f.DataContratacao
+//from 
+//	Funcionarios f
+//Inner join
+//	Departamentos d on f.DepartamentoId = d.Id;
+
+//select* from view_funcinariosDepartamentos;
+
+//drop view view_funcinariosDepartamentos;
+
+//Criando a view via migration, mesmo esquema de procedure
+//A diferença é q eu posso mapear a view como uma entidade no EF Core
+
+var result = await _context.FuncionarioDepartamentoViews.OrderBy(f => f.Salario).ToListAsync(); //Posso usar também o FromSql e o FromSqlRaw
+result.ForEach(f => Console.WriteLine($"Nome: {f.NomeFuncionario} | Departamento: {f.NomeDepartamento} | Cargo: {f.Cargo} | Salário: {f.Salario}"));
+
+//Da para chamar sem mapeamento também:
+//É bom quando não quer poluir o domínio com muitas entidades
+//var funcionarios7 = await _context.Database.SqlQuery<FuncionarioDepartamentoDTO>($@"SELECT * FROM view_funcinariosDepartamentos ORDER BY Salario").ToListAsync();
+//public record FuncionarioDepartamentoDTO
+//{
+//    public Guid FuncionarioId { get; set; }
+//    public Guid DepartamentoId { get; set; }
+//    public string NomeFuncionario { get; set; }
+//    public string NomeDepartamento { get; set; }
+//    public string DescricaoDepartamento { get; set; }
+//    public string Cargo { get; set; }
+//    public decimal Salario { get; set; }
+//    public DateOnly DataContratacao { get; set; }
+//}
+
+//Não é recomendado mapear a view para uma entidade: 
+//-Views são somentes leituras e não suportam operações de escrita (insert, update, delete).
+//Mistura responsabilidades, a view é só projeção de dados, não deve ter lógica de negócio.
+//Fere princípios de design como SRP (Single Responsibility Principle).
+//Complica manutenção e evolução do modelo de domínio.

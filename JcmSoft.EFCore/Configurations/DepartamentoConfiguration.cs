@@ -20,6 +20,12 @@ namespace JcmSoft.EFCore.Configurations
                 new Departamento { Id = 6, Nome = "Vendas", Descricao = "Gestão de Vendas", DataCriacao = new DateTime(2023, 01, 01) },
                  new Departamento { Id = 7, Nome = "Farmacêutico", Descricao = "Gestão de Vendas", DataCriacao = new DateTime(2021, 01, 01) }
             );
+            
+            //entity.HasMany(d => d.Funcionarios)
+            //      .WithOne(f => f.Departamento)
+            //      .HasForeignKey(f => f.DepartamentoId)
+            //      .OnDelete(DeleteBehavior.Cascade); // Se eu apagar um departamento, apaga todos os funcionários associados
+
         }
     }
 }
