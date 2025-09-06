@@ -17,5 +17,7 @@ namespace JcmSoft.Domain.Entities
         public virtual ICollection<FuncionarioProjeto> FuncionarioProjetos { get; set; } = new List<FuncionarioProjeto>();
         public int ClienteId { get; set; }
         public virtual Cliente? Cliente { get; set; }
+        //Valor para Sequencial (int, long ou decimal)
+        public int NumeroOrdemServico { get; set; }
     }
 }

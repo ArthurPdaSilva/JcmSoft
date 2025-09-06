@@ -6,7 +6,7 @@
         Parado,
         EmAprovacao,
         Adiado,
-        Andamento,
+        EmAndamento = 20,
         EmRevisao = 5,
         Iniciado = 10,
         Concluido = 100

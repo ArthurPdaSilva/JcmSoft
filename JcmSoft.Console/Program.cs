@@ -1,5 +1,6 @@
 ﻿using JcmSoft.Domain.Entities;
 using JcmSoft.EFCore.Context;
+using JcmSoft.EFCore.FuncoesSQL;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -669,8 +670,8 @@ using var _context = new AppDbContext();
 //Criando a view via migration, mesmo esquema de procedure
 //A diferença é q eu posso mapear a view como uma entidade no EF Core
 
-var result = await _context.FuncionarioDepartamentoViews.OrderBy(f => f.Salario).ToListAsync(); //Posso usar também o FromSql e o FromSqlRaw
-result.ForEach(f => Console.WriteLine($"Nome: {f.NomeFuncionario} | Departamento: {f.NomeDepartamento} | Cargo: {f.Cargo} | Salário: {f.Salario}"));
+//var result = await _context.FuncionarioDepartamentoViews.OrderBy(f => f.Salario).ToListAsync(); //Posso usar também o FromSql e o FromSqlRaw
+//result.ForEach(f => Console.WriteLine($"Nome: {f.NomeFuncionario} | Departamento: {f.NomeDepartamento} | Cargo: {f.Cargo} | Salário: {f.Salario}"));
 
 //Da para chamar sem mapeamento também:
 //É bom quando não quer poluir o domínio com muitas entidades
@@ -692,3 +693,54 @@ result.ForEach(f => Console.WriteLine($"Nome: {f.NomeFuncionario} | Departamento
 //Mistura responsabilidades, a view é só projeção de dados, não deve ter lógica de negócio.
 //Fere princípios de design como SRP (Single Responsibility Principle).
 //Complica manutenção e evolução do modelo de domínio.
+
+//Funções escalares são funções que retornam um único valor (ex: int, string, decimal) e podem ser usadas em consultas SQL, cláusulas WHERE, SELECT, ORDER BY, etc. Elas são úteis para cálculos simples, formatações ou transformações de dados.
+//Ficam dentro da pasta Procedures no Dbeaver
+//São apenas leitura, não podem modificar dados no banco.
+//Exem: Calcular Quantos anos de serviço
+//CREATE FUNCTION dbo.CalcularAnosDeServico (@DataContratacao DATE)
+//RETURNS INT
+//AS 
+//BEGIN
+//	RETURN DATEDIFF(YEAR, @DataContratacao, GETDATE())
+//END
+
+//var funcionarios8 = await _context.Funcionarios
+//    .AsNoTracking()
+//    .Select(f => new
+//    {
+//        f.Nome,
+//        f.Cargo,
+//        f.Salario,
+//        AnosDeServico = FuncoesSQL.CalcularAnosDeServico(f.DataContratacao)//Para funções escalares uso o SqlQuery
+//    })
+//    .OrderByDescending(f => f.AnosDeServico)
+//    .ToListAsync();
+//funcionarios8.ForEach(f => Console.WriteLine($"Nome: {f.Nome} | Cargo: {f.Cargo} | Salário: {f.Salario} | Anos de Serviço: {f.AnosDeServico}"));
+
+//Parecido com funções escalares, também temos as funções de tabela que retornam um conjunto de resultados (tabela) e podem ser usadas em consultas SQL como se fossem tabelas reais. Elas são úteis para encapsular consultas complexas que retornam múltiplas linhas e colunas.
+//CREATE FUNCTION dbo.ProjetosAtivosApos (@dataInicio Date)
+//RETURNS TABLE
+//AS 
+//RETURN (
+//	SELECT Id, Nome, Descricao, Orcamento, DataInicio, DataAtualizacao, DataFim, Status, ClienteId 
+//	FROM Projetos 
+//	Where DataInicio > @dataInicio
+//		And Status in (10, 20) -- Iniciado e EmAndamento
+//)
+//SELECT * from ProjetosAtivosApos('2023-01-01');
+
+//IQueryable representa uma consulta que pode ser executada contra uma fonte de dados, como um banco de dados. Ele permite construir consultas de forma dinâmica e adiar a execução até que os dados sejam realmente necessários. IQueryable é usado principalmente para consultas LINQ que serão traduzidas para SQL e executadas no banco de dados.
+//var projetosAtivos = await _context.ProjetosAtivosApos(new DateTime(2023, 1, 1)).OrderBy(p => p.DataInicio).ToListAsync();
+//projetosAtivos.ForEach(p => Console.WriteLine($"Nome: {p.Nome} | Data Início: {p.DataInicio} | Status: {p.Status}"));
+
+//Funções Escalares X Funções de Tabela
+//Funções Escalares: Retornam um único valor (ex: int, string, decimal). Usadas para cálculos simples, formatações ou transformações de dados. Ex: Calcular idade, formatar strings.
+//Funções de Tabela: Retornam um conjunto de resultados (tabela). Usadas para encapsular consultas complexas que retornam múltiplas linhas e colunas. Ex: Obter todos os projetos ativos após uma data específica.
+//Representação no C#: Funções Escalares são chamadas diretamente em consultas LINQ, enquanto Funções de Tabela são mapeadas como DbSet ou métodos que retornam IQueryable.
+//Corpo do método: Funções Escalares tem o throw new NotImplementedException();, enquanto Funções de Tabela => FromExpression(() => ...).
+//Quem pode retornar um tipo anônimo? Funções de Tabela podem retornar tipos anônimos, Funções Escalares não podem.
+//Recomendação: Use Funções Escalares para operações simples que retornam um único valor. Use Funções de Tabela para consultas complexas que retornam múltiplas linhas e colunas. Ou substituir views por funções de tabela quando precisar de parâmetros.
+
+//Sequências são objetos de banco de dados que geram uma sequência numérica única e ordenada. Elas são usadas principalmente para gerar valores para chaves primárias ou outras colunas que requerem valores únicos. As sequências são independentes das tabelas, o que significa que podem ser compartilhadas entre várias tabelas ou usadas para outros propósitos além de chaves primárias.
+//São Transacionais, ou seja, se uma transação falhar, o valor gerado pela sequência não será revertido. Isso pode resultar em lacunas na sequência de valores.

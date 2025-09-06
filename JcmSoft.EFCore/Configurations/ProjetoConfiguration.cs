@@ -72,7 +72,7 @@ namespace JcmSoft.EFCore.Configurations
                    DataAtualizacao = new DateTime(2025, 3, 11),
                    DataFim = new DateTime(2023, 10, 31),
                    ClienteId = 4,
-                   Status = StatusProjeto.Andamento
+                   Status = StatusProjeto.EmAndamento
                },
                new Projeto
                {
@@ -96,9 +96,10 @@ namespace JcmSoft.EFCore.Configurations
                    DataAtualizacao = new DateTime(2025, 3, 11),
                    DataFim = new DateTime(2024, 3, 31),
                    ClienteId = 3,
-                   Status = StatusProjeto.Andamento
+                   Status = StatusProjeto.EmAndamento
                }
             );
+
         }
     }
 }
