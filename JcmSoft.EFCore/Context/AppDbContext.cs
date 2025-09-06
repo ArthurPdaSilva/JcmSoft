@@ -7,6 +7,11 @@ namespace JcmSoft.EFCore.Context
 {
     public class AppDbContext : DbContext
     {
+
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        {
+        }
+
         public DbSet<Departamento> Departamentos { get; set; }
         public DbSet<Funcionario> Funcionarios { get; set; }
         public DbSet<FuncionarioDetalhe> FuncionariosDetalhes { get; set; }
@@ -50,10 +55,10 @@ namespace JcmSoft.EFCore.Context
             modelBuilder.HasSequence<int>("NumeroOSSequence", "dbo") //Cria uma sequência no banco de dados
                 .StartsAt(2001) //Inicia em 2001
                 .IncrementsBy(10) //Incrementa de 10 em 10
-                //Opcionais:
+                                  //Opcionais:
                 .HasMin(2001)
                 .HasMax(999999);
-                //.IsCyclic(); //Quando chegar no máximo, volta para o mínimo (O padrão é não usar)
+            //.IsCyclic(); //Quando chegar no máximo, volta para o mínimo (O padrão é não usar)
 
             modelBuilder.Entity<Projeto>()
                 .Property(p => p.NumeroOrdemServico)

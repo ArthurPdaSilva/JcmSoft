@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 JcmSoft.EFCore/Migrations/20250903135142_init.cs
 /JcmSoft.EFCore/Migrations
+JcmSoft.API/appsettings.json
+/JcmSoft.MVC

@@ -1,0 +1,26 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+GET https://localhost:7270/api/departamentos
+###
+
+GET https://localhost:7270/api/departamentos/2
+###
+
+POST https://localhost:7270/api/departamentos
+Content-Type: application/json
+{
+  "nome": "Marketing Brabo",
+  "descricao": "Promoção de Brabos"
+}
+###
+
+PUT https://localhost:7270/api/departamentos/2
+Content-Type: application/json
+{
+  "id": 2,
+  "nome": "Departamento Atualizado",
+  "descricao": "Promoção de Atualizados"
+}
+###
+
+DELETE https://localhost:7270/api/departamentos/2
+###
