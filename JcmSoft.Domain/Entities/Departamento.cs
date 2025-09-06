@@ -7,5 +7,9 @@
         public required string Descricao { get; set; }
         public required DateTime DataCriacao { get; set; }
         public virtual ICollection<Funcionario> Funcionarios { get; set; } = new List<Funcionario>();
+
+        //Controle de concorrência otimista
+        //[Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

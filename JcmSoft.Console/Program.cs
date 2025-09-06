@@ -633,8 +633,7 @@ using System.Runtime.Intrinsics.X86;
 //var funcionarios6 = await _context.Funcionarios.FromSqlRaw("usp_FuncionariosContratadosPorPeriodo @DataInicio, @DataFim", parametros).ToListAsync();
 //funcionarios6.ForEach(f => Console.WriteLine($"Nome: {f.Nome} | Cargo: {f.Cargo} | Data Contratação: {f.DataContratacao}"));
 
-using var _context = new AppDbContext();
-
+//using var _context = new AppDbContext();
 
 //Uma view é uma tabela virtual baseada no resultado de uma consulta SQL. Ela pode combinar dados de uma ou mais tabelas e apresentar esses dados como se fossem uma única tabela. As views são úteis para simplificar consultas complexas, encapsular lógica de negócios e melhorar a segurança ao restringir o acesso direto às tabelas subjacentes.
 //É como se fosse um filtro ou uma janela para os dados, ela não ocupa espaço extra.
@@ -744,3 +743,247 @@ using var _context = new AppDbContext();
 
 //Sequências são objetos de banco de dados que geram uma sequência numérica única e ordenada. Elas são usadas principalmente para gerar valores para chaves primárias ou outras colunas que requerem valores únicos. As sequências são independentes das tabelas, o que significa que podem ser compartilhadas entre várias tabelas ou usadas para outros propósitos além de chaves primárias.
 //São Transacionais, ou seja, se uma transação falhar, o valor gerado pela sequência não será revertido. Isso pode resultar em lacunas na sequência de valores.
+
+
+//Computed Columns (Colunas Computadas) são colunas em uma tabela de banco de dados cujo valor é derivado de uma expressão ou cálculo baseado em outras colunas da mesma tabela. Elas são úteis para armazenar resultados de cálculos que precisam ser frequentemente acessados, sem a necessidade de recalcular o valor toda vez que a coluna é consultada. As colunas computadas podem ser persistentes (armazenadas fisicamente no banco de dados) ou não persistentes (calculadas dinamicamente quando consultadas).
+//Persistentes são indicadas quando se quer melhor desempenho e não quando o desempenho não for crítico e o espaço em disco for uma preocupação.
+
+
+//var projetos = await _context.Projetos
+//    .AsNoTracking()
+//    .OrderBy(p => p.DataInicio)
+//    .ToListAsync();
+
+//projetos.ForEach(p => Console.WriteLine($"Nome: {p.Nome} | Data Início: {p.DataInicio} | Data Fim: {p.DataFim} | Status: {p.Status} | Duração (dias): {p.DuracaoEmDias}"));
+
+//As Transações são work flow que envolvem uma ou mais operações de banco de dados que devem ser executadas como uma única unidade de trabalho. Elas garantem que todas as operações dentro da transação sejam concluídas com sucesso ou, em caso de falha, revertidas para o estado anterior, mantendo a integridade dos dados.
+//Transações são usadas para garantir que um conjunto de operações de banco de dados sejam executadas de forma atômica, ou seja, todas as operações são concluídas com sucesso ou nenhuma delas é aplicada. Isso é crucial para manter a integridade dos dados, especialmente em cenários onde múltiplas operações dependem umas das outras. Se uma operação falhar, a transação pode ser revertida (rollback), garantindo que o banco de dados permaneça em um estado consistente
+//Se uma falhar, todas falham. Ele lança um rollback automático
+
+//Tipos de Transações:
+//Implícitas: O EF Core gerencia automaticamente as transações para operações individuais de SaveChanges(). Cada chamada a SaveChanges() é envolvida em uma transação implícita.
+//O EFCOre só cria transação se houver mais de uma operação de escrita (insert, update, delete) no SaveChanges()
+
+//Transações Explícitas: O desenvolvedor controla o início, commit ou rollback
+//Isso é útil quando múltiplas operações de banco de dados precisam ser agrupadas em uma única transação, ou quando se deseja ter controle total sobre o escopo da transação.
+//Lidamos com multiplos bancos de dados
+//Comandos no EFCore:
+// IDBContextTransaction BeginTransaction(); // Inicia uma nova transação
+// void Commit // Confirma
+// void Rollback // Reverte
+// Dispose // Libera recursos
+
+//using var transaction = await _context.Database.BeginTransactionAsync();
+//try
+//{
+//    var novoDepartamento = new Departamento
+//    {
+//        Nome = "Departamento de TI",
+//        Descricao = "Responsável por toda a infraestrutura tecnológica da empresa",
+//        DataCriacao = DateTime.Now
+//    };
+//    _context.Departamentos.Add(novoDepartamento);
+//    await _context.SaveChangesAsync();
+//    var novoFuncionario = new Funcionario
+//    {
+//        Nome = "João Silva",
+//        Cargo = "Desenvolvedor",
+//        Salario = 6000.00m,
+//        DataContratacao = DateOnly.FromDateTime(DateTime.Now),
+//        DepartamentoId = novoDepartamento.Id
+//    };
+//    _context.Funcionarios.Add(novoFuncionario);
+//    await _context.SaveChangesAsync();
+
+//    // Simulando um erro para testar o rollback
+//    //int x = 0;
+//    //int y = 1 / x;
+
+//    await transaction.CommitAsync();
+//    Console.WriteLine("Transação concluída com sucesso.");
+//}
+//catch (Exception ex)
+//{
+//    await transaction.RollbackAsync();
+//    Console.WriteLine($"Erro na transação: {ex.Message}");
+//}
+
+
+//Conflitos de concorrência:
+//Exemplo: Dois usuários tentam atualizar o mesmo registro ao mesmo tempo. O primeiro usuário salva suas alterações, e quando o segundo usuário tenta salvar, ele recebe um erro de conflito de concorrência.
+//Last in wins: A última alteração salva sobrescreve as alterações anteriores sem aviso. Isso pode levar à perda de dados se não for gerenciado corretamente.
+
+
+//var funcId = 1;
+
+////User A carrega o funcionário
+//var _contextA = new AppDbContext();
+//var funcionarioA = await _contextA.Funcionarios.FirstOrDefaultAsync(f => f.Id == funcId);
+
+////User B carrega o mesmo funcionário
+//var _contextB = new AppDbContext();
+//var funcionarioB = await _contextB.Funcionarios.FirstOrDefaultAsync(f => f.Id == funcId);
+
+////User A atualiza o salário e salva
+//funcionarioA.Salario += 500;
+//await _contextA.SaveChangesAsync();
+
+////User B atualiza o salário e tenta salvar
+//funcionarioB.Salario += 1300;
+
+////Tratando
+//try
+//{
+//    await _contextB.SaveChangesAsync();
+
+//}
+//catch (DbUpdateConcurrencyException ex)
+//{
+//    Console.WriteLine("Conflito de concorrência detectado. Atualizando os dados...");
+//    //Obtém os valores atuais do banco
+//    foreach (var entry in ex.Entries)
+//    {
+//        if (entry.Entity is Funcionario)
+//        {
+//            var originalValues = entry.OriginalValues; //Valores originais quando o user B carregou o objeto
+//            var proposedValues = entry.CurrentValues; //Valores que o user B tentou salvar
+//            var databaseValues = await entry.GetDatabaseValuesAsync(); //Valores atuais do banco
+//            Console.WriteLine($"Valores Originais: Salário = {originalValues["Salario"]}");
+//            Console.WriteLine($"Valores Propostos: Salário = {proposedValues["Salario"]}");
+//            Console.WriteLine($"Valores no Banco: Salário = {databaseValues["Salario"]}");
+
+//            //Estratégias de resolução:
+//            //-Abortar a operação (já feito com a exceção)
+//            //-Sobrescrever os dados do banco com os valores propostos (Last in wins)
+//            //-Fazer merge manual
+//            //-Recarregar os dados no banco
+
+
+//            //A mais segura é não continuar e avisar o usuário
+//        }
+//    }
+//}
+
+
+////Salário Final será o de B:
+//var _finalContext = new AppDbContext();
+//var funcionarioFinal = await _finalContext.Funcionarios.FirstOrDefaultAsync(f => f.Id == funcId);
+//Console.WriteLine($"Salário final do funcionário {funcionarioFinal.Nome}: {funcionarioFinal.Salario}");
+
+
+//Tratando concorrência:
+//Por Campo: (otimista) via propriedade 
+//Data Annotations: [ConcurrencyCheck] ou IsCurrencyToken() via Fluent API (Ele adicionaria um And no Where: exp: .Where(f => f.Id == funcId && f.UltimaAtualizacao == valorOriginal)
+//Por Tabela (otimista) via token de concurrência
+// - Otimista: Assume que conflitos são raros e permite
+// - Pessimista: Bloqueia o registro para evitar conflitos (ex: SELECT ... FOR UPDATE no SQL) Dar lock no momento de leitura até dar um saveChanges(). Pode causar deadlocks e reduzir a concorrência.
+// -- Timestamp (obsoleto no SQL Server, use rowversion): Coluna especial que armazena um valor binário único que é atualizado automaticamente toda vez que a linha é modificada. No EF Core, mapeie a propriedade com [Timestamp] ou IsRowVersion() via Fluent API. O EF Core verifica o valor do rowversion durante o SaveChanges() para detectar conflitos.
+// -- RowVersion: Similar ao Timestamp, mas é o nome mais moderno e recomendado. Funciona da mesma forma, armazenando um valor binário que é atualizado automaticamente. Use [Timestamp] ou IsRowVersion() via Fluent API.
+
+//int dpId = 1;
+//Departamento dpA;
+//Departamento dpB;
+
+//using (var contextA = new AppDbContext())
+//{
+//    dpA = await contextA.Departamentos.FirstOrDefaultAsync(d => d.Id == dpId);
+
+//}
+
+//using (var contextB = new AppDbContext())
+//{
+//    dpB = await contextB.Departamentos.FirstOrDefaultAsync(d => d.Id == dpId);
+//}
+
+//using (var contextA = new AppDbContext())
+//{
+//    dpA.Nome = "Novo Nome - A";
+//    contextA.Departamentos.Update(dpA);
+//    await contextA.SaveChangesAsync();
+//    Console.WriteLine("Departamento atualizado por A");
+//}
+
+//using (var contextB = new AppDbContext())
+//{
+//    dpB.Nome = "Novo Nome - B";
+//    contextB.Departamentos.Update(dpB);
+//    try
+//    {
+//        await contextB.SaveChangesAsync();
+//        Console.WriteLine("Departamento atualizado por B");
+//    }
+//    catch (DbUpdateConcurrencyException ex)
+//    {
+//        Console.WriteLine("Conflito de concorrência detectado para o departamento. Atualizando os dados...");
+//        foreach (var entry in ex.Entries)
+//        {
+//            if (entry.Entity is Departamento)
+//            {
+//                var originalValues = entry.OriginalValues;
+//                var proposedValues = entry.CurrentValues;
+//                var databaseValues = await entry.GetDatabaseValuesAsync();
+//                entry.OriginalValues.SetValues(databaseValues); //Atualiza os valores originais na memória com os do banco, assim sincroniza as entidades
+//                Console.WriteLine("Dados recarregados. Por favor, revise as alterações antes de salvar novamente.");
+//            }
+//        }
+//    }
+//}
+
+
+//Concorrência Pessimista:
+//Durante a leitura, o registro é bloqueado para outras transações até que a transação atual seja concluída (commit ou rollback).
+//Possíveis problemas: timeout ou deadlock
+//O banco precisa suportar lock
+//UpdLock = bloqueia para update, XLock = bloqueia para leitura e escrita, HoldLock = mantém o lock até o final da transação
+
+int clienteId = 1;
+
+async Task UsuarioA()
+{
+    using var contextA = new AppDbContext();
+    contextA.Database.SetCommandTimeout(30); 
+    using var transactionA = await contextA.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted);
+    try
+    {
+        var allClientes = await contextA.Clientes.ToListAsync();
+        var clienteA = await contextA.Clientes.FromSqlRaw("SELECT * FROM Clientes WITH (UPDLOCK, HOLDLOCK) WHERE Id = {0}", clienteId).FirstOrDefaultAsync();
+        Console.WriteLine($"Usuário A carregou o cliente: {clienteA.Nome}");
+        //Simula um tempo de edição
+        await Task.Delay(10000);
+        clienteA.Nome = "Cliente Atualizado por A";
+        await contextA.SaveChangesAsync();
+        await transactionA.CommitAsync();
+        Console.WriteLine("Usuário A salvou as alterações.");
+    }
+    catch (Exception ex)
+    {
+        await transactionA.RollbackAsync();
+        Console.WriteLine($"Erro na transação do Usuário A: {ex.Message}");
+    }
+}
+
+async Task UsuarioB()
+{
+    using var contextB = new AppDbContext();
+    contextB.Database.SetCommandTimeout(5);
+    using var transactionB = await contextB.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted);
+    try
+    {
+        var clienteB = await contextB.Clientes.Where(c => c.Id == clienteId).FirstOrDefaultAsync();
+        Console.WriteLine($"Usuário A carregou o cliente: {clienteB.Nome}");
+        //Simula um tempo de edição
+        await Task.Delay(10000);
+        clienteB.Nome = "Cliente Atualizado por B";
+        await contextB.SaveChangesAsync();
+        await transactionB.CommitAsync();
+        Console.WriteLine("Usuário A salvou as alterações.");
+    }
+    catch (Exception ex)
+    {
+        await transactionB.RollbackAsync();
+        Console.WriteLine($"Erro na transação do Usuário B: {ex.Message}");
+    }
+}
+
+//Serve para simular dois usuários concorrentes
+await Task.WhenAll(UsuarioA(), UsuarioB());

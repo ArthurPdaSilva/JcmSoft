@@ -1,4 +1,6 @@
-﻿namespace JcmSoft.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace JcmSoft.Domain.Entities
 {
     public class Funcionario
     {
@@ -6,6 +8,8 @@
         public required string Nome { get; set; }
         public required string Cargo { get; set; }
         //[Column(TypeName = "decimal(10,2)")]
+
+        //[ConcurrencyCheck]
         public required decimal Salario { get; set; }
         public DateOnly DataContratacao { get; set; }
 

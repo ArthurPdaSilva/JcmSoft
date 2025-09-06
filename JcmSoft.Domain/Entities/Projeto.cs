@@ -19,5 +19,7 @@ namespace JcmSoft.Domain.Entities
         public virtual Cliente? Cliente { get; set; }
         //Valor para Sequencial (int, long ou decimal)
         public int NumeroOrdemServico { get; set; }
+        //O private set é usado para garantir que a propriedade só possa ser modificada dentro da própria classe, promovendo encapsulamento e controle sobre como o valor é alterado. 
+        public int DuracaoEmDias { get; private set; }
     }
 }

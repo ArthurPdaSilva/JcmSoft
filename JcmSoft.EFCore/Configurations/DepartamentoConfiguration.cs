@@ -10,6 +10,8 @@ namespace JcmSoft.EFCore.Configurations
         {
             entity.Property(e => e.Nome).HasMaxLength(100);
             entity.Property(e => e.Descricao).HasMaxLength(200);
+            //O mesmo de Timestamp só q feito com Fluent API
+            entity.Property(e => e.RowVersion).IsRowVersion();
 
             entity.HasData(
                 new Departamento { Id = 1, Nome = "Financeiro", Descricao = "Gestão das finanças", DataCriacao = new DateTime(2023, 01, 01) },

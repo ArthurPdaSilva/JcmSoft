@@ -11,7 +11,11 @@ namespace JcmSoft.EFCore.Configurations
         {
             entity.Property(e => e.Nome).HasMaxLength(100);
             entity.Property(e => e.Descricao).HasMaxLength(200);
+
             entity.Property(e => e.Orcamento).HasColumnType("decimal(20,2)");
+            //Coluna Computada e DateDiff calcula a diferença entre duas datas, sendo o primeiro parâmetro a unidade de tempo (DAY, MONTH, YEAR, etc.), o segundo a data inicial e o terceiro a data final.
+            //O Stored: true indica que o valor é armazenado fisicamente no banco de dados, em vez de ser calculado dinamicamente a cada vez que é acessado.
+            entity.Property(e => e.DuracaoEmDias).HasComputedColumnSql("DATEDIFF(DAY, DataInicio, DataFim)", stored: true);
 
             entity.HasData(
                new Projeto

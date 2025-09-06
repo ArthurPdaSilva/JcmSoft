@@ -10,7 +10,9 @@ namespace JcmSoft.EFCore.Configurations
         {
             entity.Property(e => e.Nome).HasMaxLength(100);
             entity.Property(e => e.Cargo).HasMaxLength(100);
-            entity.Property(e => e.Salario).HasColumnType("decimal(14,2)");
+            entity.Property(e => e.Salario)
+                .HasPrecision(14, 2)
+                .IsConcurrencyToken();
 
             entity.HasData(
                  // Funcionários do Financeiro
