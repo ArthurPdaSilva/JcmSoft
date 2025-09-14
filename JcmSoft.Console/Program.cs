@@ -983,10 +983,119 @@
 //        await transactionB.RollbackAsync();
 //        Console.WriteLine($"Erro na transação do Usuário B: {ex.Message}");
 //    }
+////}
+
+//////Serve para simular dois usuários concorrentes
+////await Task.WhenAll(UsuarioA(), UsuarioB());
+
+
+////Falar que algo é idempotente significa que ele sempre retornará o mesmo resultado
+var frutas = new List<string> { "Maçã", "Banana", "Laranja" };
+////Query Syntax
+//var result = from fruta in frutas
+//             where fruta.Contains("a")
+//             select fruta.ToUpper();
+//result.ToList().ForEach(f => Console.WriteLine(f));
+
+////Usando um método anônimo com delegate
+//Console.WriteLine(
+//    frutas.Where(delegate (string fruta)
+//    {
+//        return fruta.Contains("a");
+//    }).Select(f => f.ToUpper()).FirstOrDefault()
+//);
+
+////Usando expressão lambda
+//Console.WriteLine(
+//    frutas.Where(f => f.Contains("a")).Select(f => f.ToUpper()).FirstOrDefault()
+//);
+
+////Usando SelectMany
+//var listas = new List<List<string>>
+//{
+//    new List<string> { "Maçã", "Banana" },
+//    new List<string> { "Laranja", "Uva" },
+//    new List<string> { "Abacaxi", "Manga" }
+//};
+////O SelectMany "achata" as listas em uma única lista
+//var todasFrutas = listas.SelectMany(lista => lista).ToList();
+
+
+////As operações com Conjunto: Distinct, Union, Intersect e Except
+var numeros1 = new List<int> { 1, 2, 3, 4, 5, 5, 6 };
+var numeros2 = new List<int> { 5, 6, 7, 8, 9, 10 };
+//var numerosDistintos = numeros1.Distinct().ToList(); //Remove duplicatas
+//var numerosUniao = numeros1.Union(numeros2).ToList(); //Combina e remove duplicatas
+//var numerosIntersecao = numeros1.Intersect(numeros2).ToList(); //Números comuns
+//var numerosDiferenca = numeros1.Except(numeros2).ToList(); //Números em numeros1 que não estão em numeros2
+//Console.WriteLine("Números distintos: " + string.Join(", ", numerosDistintos));
+//Console.WriteLine("Números união: " + string.Join(", ", numerosUniao));
+//Console.WriteLine("Números interseção: " + string.Join(", ", numerosIntersecao));
+//Console.WriteLine("Números diferença: " + string.Join(", ", numerosDiferenca));
+
+////Agregate x GroupBy
+////Aggregate: Executa uma função de agregação em uma coleção, retornando um único valor. Ex: soma, média, máximo, mínimo.
+//var soma = numeros1.Aggregate((total, num) => total + num);
+//Console.WriteLine($"Soma: {soma}");
+////GroupBy: Agrupa elementos de uma coleção com base em uma chave especificada, retornando uma coleção de grupos.
+//var grupos = frutas.GroupBy(f => f.Length);
+//foreach (var grupo in grupos)
+//{
+//    Console.WriteLine($"Frutas com {grupo.Key} letras: {string.Join(", ", grupo)}");
 //}
 
-////Serve para simular dois usuários concorrentes
-//await Task.WhenAll(UsuarioA(), UsuarioB());
+////O ToLookUP é semelhante ao GroupBy, mas retorna um LookUp, que é uma coleção de grupos indexados por chave. Ele é útil quando você precisa de acesso rápido aos grupos por chave.
+////O Resultado é obtido ao chamar o método e não em uma iteração como é nosso GroupBy
+
+////Join e GroupJoin
+////Join: Combina elementos de duas coleções com base em uma chave comum, retornando uma coleção de elementos combinados.
+//Console.WriteLine(
+//    frutas.Join(numeros2,
+//        fruta => fruta.Length, //Chave da coleção frutas
+//        numero => numero, //Chave da coleção numeros2
+//        (fruta, numero) => new { Fruta = fruta, Numero = numero }) //Resultado
+//    .ToList()
+//    .Select(fn => $"{fn.Fruta} - {fn.Numero}")
+//    .FirstOrDefault()
+//);
+////GroupJoin: Semelhante ao Join, mas retorna uma coleção de grupos, onde cada grupo contém os elementos correspondentes da segunda coleção.
+//var groupJoinResult = frutas.GroupJoin(numeros2,
+//    fruta => fruta.Length,
+//    numero => numero,
+//    (fruta, numeros) => new { Fruta = fruta, Numeros = numeros }
+//);
 
 
-//Falar que algo é idempotente significa que ele sempre retornará o mesmo resultado
+//Left Join: Combina elementos de duas coleções, retornando todos os elementos da coleção à esquerda e os elementos correspondentes da coleção à direita. Se não houver correspondência, os elementos da direita serão nulos.
+////Right Join: Combina elementos de duas coleções, retornando todos os elementos da coleção à direita e os elementos correspondentes da coleção à esquerda. Se não houver correspondência, os elementos da esquerda serão nulos.
+//var leftJoinResult = from fruta in frutas
+//                     join numero in numeros2
+//                     on fruta.Length equals numero into gj
+//                     from subNumero in gj.DefaultIfEmpty() //Left Join
+//                     select new { Fruta = fruta, Numero = subNumero };
+
+//var rightJoinResult = from numero in numeros2
+//                      join fruta in frutas
+//                      on numero equals fruta.Length into gj
+//                      from subFruta in gj.DefaultIfEmpty() //Right Join
+//                      select new { Fruta = subFruta, Numero = numero };
+
+//Console.WriteLine("Left Join:");
+//leftJoinResult.ToList().ForEach(r => Console.WriteLine($"{r.Fruta} - {r.Numero}"));
+//Console.WriteLine("Right Join:");
+//rightJoinResult.ToList().ForEach(r => Console.WriteLine($"{r.Fruta} - {r.Numero}"));
+
+//SingleOrDefault: Retorna o único elemento de uma coleção que satisfaz uma condição especificada ou um valor padrão se nenhum elemento for encontrado. Lança uma exceção se mais de um elemento for encontrado.
+
+//Operadores Range, Repeat e Empty
+var range = Enumerable.Range(1, 10).ToList(); //Gera uma sequência de números inteiros dentro de um intervalo especificado
+var repeat = Enumerable.Repeat("Hello", 5).ToList(); //Gera uma sequência que contém um elemento repetido um número especificado de vezes
+var empty = Enumerable.Empty<string>().ToList(); //Gera uma sequência vazia de um tipo especificado
+Console.WriteLine("Range: " + string.Join(", ", range));
+Console.WriteLine("Repeat: " + string.Join(", ", repeat));
+Console.WriteLine("Empty: " + string.Join(", ", empty));
+
+//Append, Prepend e Zip
+var append = frutas.Append("Abacate").ToList(); //Adiciona um elemento ao final de uma sequência
+var prepend = frutas.Prepend("Cereja").ToList(); //Adiciona um elemento ao início de uma sequência
+var zip = frutas.Zip(numeros1, (f, n) => new { Fruta = f, Numero = n }).ToList(); //Combina duas sequências em uma sequência de pares
